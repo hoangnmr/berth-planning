@@ -1,0 +1,295 @@
+/* src/styles/layout.css */
+
+/* === BỐ CỤC APP CHÍNH === */
+.app { 
+  display: flex; 
+  flex-direction: column; 
+  height: 100vh; 
+}
+.app-header {
+  height: 60px;
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+}
+.app-header h1 { 
+  font-size: 1.4rem; 
+  font-weight: 600; 
+  margin: 0; 
+  color: var(--text-primary); 
+}
+.header-buttons { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+}
+.header-buttons button { 
+  width: auto; 
+  padding: 8px 16px; 
+  font-weight: 500; 
+}
+
+/* Nút Chọn Ngày */
+.date-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 16px;
+}
+.date-selector-wrapper label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.date-input {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-weight: 500;
+  background-color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: 140px;
+}
+.btn-date-nav {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: all 0.2s;
+  min-width: 28px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-date-nav:active {
+  transform: scale(0.95);
+}
+
+.day-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+}
+.day-selector-wrapper label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.day-selector-wrapper select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-weight: 500;
+  background-color: #fff;
+  font-size: 0.9rem;
+}
+
+/* === Options Menu (Bánh răng) === */
+.options-menu-wrapper {
+  position: relative;
+}
+.btn-options {
+  background-color: #f0f2f5;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-options:hover {
+  background-color: #e4e6e9;
+  border-color: #c0d3eb;
+}
+.options-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  z-index: 200;
+  width: 200px;
+  overflow: visible; /* allow child popovers to extend outside */
+  border: 1px solid var(--border-color);
+  padding: 8px 0;
+}
+.options-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.options-menu button:hover {
+  background-color: #f0f2f5;
+}
+.menu-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 8px 0;
+}
+.menu-divider-bold {
+  height: 2px;
+  background-color: #d9534f;
+  margin: 10px 0;
+}
+.menu-item-danger {
+  color: #d9534f !important;
+}
+.menu-item-danger:hover {
+  background-color: #fbebeb !important;
+}
+
+/* === BỐ CỤC MAIN === */
+.main-content {
+  display: flex; /* Chuyển sang flexbox */
+  flex-direction: row; /* Sắp xếp theo hàng ngang */
+  flex-grow: 1;
+  overflow: hidden;
+  height: calc(100vh - 60px);
+}
+
+/* === CỘT TRÁI: PLANNER === */
+.planner-container { 
+  flex: 1; /* Cho phép co giãn */
+  overflow: auto; 
+  height: 100%;
+  min-width: 800px; /* Giảm min-width để linh hoạt hơn */
+}
+.berth-planner {
+  position: relative;
+  width: 100%; 
+}
+
+/* === CỘT PHẢI: SIDEBAR === */
+.right-sidebar {
+  flex-basis: 320px; /* Kích thước cố định ban đầu */
+  flex-shrink: 0; /* Không co lại */
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+  transition: all 0.3s ease; /* Thêm hiệu ứng chuyển động */
+}
+
+/* === MEDIA QUERIES CHO RESPONSIVE === */
+
+/* Màn hình nhỏ hơn (ví dụ: tablet dọc) */
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr 280px; /* Giảm chiều rộng sidebar */
+  }
+  .right-sidebar {
+    flex-basis: 280px;
+  }
+  .app-header h1 {
+    font-size: 1.2rem; /* Giảm kích thước tiêu đề */
+  }
+}
+
+/* Màn hình rất nhỏ (ví dụ: mobile) */
+@media (max-width: 992px) {
+  .main-content {
+    display: flex;
+    flex-direction: column; /* Chuyển thành layout cột */
+  }
+  .planner-container {
+    min-width: 100%; /* Bỏ min-width để vừa màn hình */
+    height: 60vh; /* Chiều cao cố định cho planner */
+  }
+  .right-sidebar {
+    width: 100%;
+    height: 40vh; /* Chiều cao còn lại cho sidebar */
+    border-left: none;
+    border-top: 2px solid var(--border-dark);
+  }
+  .header-buttons {
+    gap: 8px;
+  }
+  .header-buttons button, .header-buttons select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  .date-selector-wrapper {
+    margin-right: 8px;
+  }
+}
+
+/* Ẩn một số text không cần thiết trên màn hình siêu nhỏ */
+@media (max-width: 768px) {
+  .app-header h1 {
+    display: none; /* Ẩn tiêu đề chính */
+  }
+  .date-selector-wrapper label, .day-selector-wrapper label {
+    display: none; /* Ẩn label */
+  }
+  .header-buttons {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
+.panel {
+  padding: 16px;
+}
+.panel.control-panel {
+  padding: 0; 
+}
+.panel.control-panel > section {
+  padding: 16px;
+}
+
+/* CSS cho Detail Panel Header */
+.detail-panel-header {
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 16px;
+  position: relative;
+}
+.detail-panel-header h2 {
+  border-bottom: none;
+  margin-bottom: 8px;
+  margin-top: 10px;
+}
+.btn-close-panel {
+  position: absolute;
+  top: -10px;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+.btn-close-panel:hover {
+  color: var(--text-primary);
+}

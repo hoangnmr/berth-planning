@@ -1,0 +1,1420 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Báo cáo Tàu - Planner & Waiting List</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script>Chart.register(ChartDataLabels);</script>
+  <style>
+    :root{--brand:#0b5ed7;--muted:#6c757d;--bg:#f7f9fb;--card:#ffffff}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:#1f2937; margin:0; padding:24px}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+    h1{margin:0;font-size:20px}
+    .meta{color:var(--muted);font-size:13px}
+    .badges{display:flex;gap:8px;align-items:center}
+    .badge{background:var(--card);padding:8px 12px;border-radius:10px;box-shadow:0 1px 3px rgba(16,24,40,.06);font-size:13px}
+    .summary{margin:16px 0;display:flex;gap:12px;flex-wrap:wrap}
+    .summary .stat{background:linear-gradient(180deg,#fff,#f8fbff);padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(12,20,60,.06);min-width:140px}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{background:var(--brand);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.secondary{background:transparent;color:var(--brand);border:1px solid rgba(11,94,215,.12)}
+    .table-wrap{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 2px 12px rgba(12,20,60,.06)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{position:sticky;top:0;background:#fff;padding:10px;border-bottom:1px solid #eef2f7;text-align:left}
+    tbody td{padding:10px;border-bottom:1px solid #f1f5f9}
+    tbody tr:nth-child(even){background:#fbfdff}
+    .nowrap{white-space:nowrap}
+    .muted{color:var(--muted)}
+    .badge-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;color:#fff}
+    .st-berthed{background:#0b5ed7}
+    .st-waiting{background:#f59e0b}
+    .st-none{background:#6c757d}
+    .col-right{text-align:right}
+    .small{font-size:12px;color:var(--muted)}
+    /* print friendly */
+    @media print{
+      body{padding:8mm}
+      header .controls{display:none}
+      .table-wrap{box-shadow:none;border-radius:0}
+    }
+    /* responsive */
+    @media (max-width:900px){
+      table{font-size:12px}
+      thead th:nth-child(n+8), tbody td:nth-child(n+8){display:none}
+    }
+    .charts { margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; }
+    .chart-container { background: var(--card); padding: 16px; border-radius: 10px; box-shadow: 0 2px 12px rgba(12,20,60,.06); flex: 1; min-width: 300px; }
+    .chart-container h3 { margin: 0 0 12px 0; font-size: 16px; }
+    .insights { margin: 20px 0; display: flex; gap: 20px; flex-wrap: wrap; }
+    .insight-card { background: var(--card); padding: 16px; border-radius: 10px; box-shadow: 0 2px 12px rgba(12,20,60,.06); flex: 1; min-width: 200px; }
+    .insight-card h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--brand); }
+    .insight-card p { margin: 0; font-size: 13px; }
+    /* sortable table headers */
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable .sort-indicator { color: #94a3b8; font-size: 11px; margin-left: 6px; }
+    th.sortable.active { color: #0b5ed7; }
+    th.sortable.active .sort-indicator { color: #0b5ed7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1 id="reportTitle">BÁO CÁO CHI TIẾT TÀU</h1>
+      </div>
+      <div class="badges">
+        <div class="badge">Tạo ngày: <span id="genTime" class="muted">--</span></div>
+        <div class="controls">
+          <button id="btnPrint">In / Print</button>
+          <button id="btnCsv" class="secondary">Tải CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="summary" id="summary">
+      <!-- summary stats populated by JS -->
+    </section>
+
+    <section class="charts" id="charts">
+      <!-- charts populated by JS -->
+    </section>
+
+    <section class="insights" id="insights">
+      <!-- insights populated by JS -->
+    </section>
+
+    <div class="table-wrap">
+      <table id="shipsTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="sortable" data-sort="berth">Berth <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="eta">ETA <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="etd">ETD <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="duration">Duration <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="cargo">Cargo <span class="sort-indicator"></span></th>
+            <th class="col-right">DWT</th>
+            <th class="small nowrap">LOA × Beam</th>
+            <th class="small">Vị trí cập</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- rows via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <footer style="margin-top:18px;font-size:12px;color:var(--muted)">
+      © Nguyen Hoang &amp; Ban Khai thac | Trung tam DHKT KV TAN THUAN
+    </footer>
+  </div>
+
+  <script>
+    // Embedded sample data (from data/mau.json)
+    const sampleData = {
+  "berthedShips": [
+    {
+      "id": "W1762403477213",
+      "name": "VIET THUAN 215-06",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 168,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "",
+      "berthName": "K12C",
+      "eta": "2025-10-06T09:57:00.000Z",
+      "etd": "2025-10-07T17:52:00.000Z",
+      "style": {
+        "left": "calc(18 / 1005 * 100%)",
+        "width": "calc(168/1005*100%)",
+        "top": "104.375px",
+        "height": "79.79166666666667px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762403749764",
+      "name": "TU CUONG 68",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 117,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "",
+      "berthName": "TT2",
+      "eta": "2025-10-07T08:22:00.000Z",
+      "etd": "2025-10-09T08:52:00.000Z",
+      "style": {
+        "left": "calc(785 / 1005 * 100%)",
+        "width": "calc(117/1005*100%)",
+        "top": "158.41666666666669px",
+        "height": "121.25000000000001px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762403956220",
+      "name": "ANT LUCKY",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 180,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "30606",
+      "berthName": "K12C",
+      "eta": "2025-10-10T23:50:00.000Z",
+      "etd": "2025-10-12T16:00:00.000Z",
+      "style": {
+        "left": "calc(6/1005*100%)",
+        "width": "calc(180/1005*100%)",
+        "top": "377.0833333333333px",
+        "height": "100.41666666666667px"
+      },
+      "mandra": "",
+      "gapWarning": false,
+      "start": -4,
+      "end": 176
+    },
+    {
+      "id": "W1762404047972",
+      "name": "TRUNG THANG 66",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 110,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "",
+      "berthName": "TT2",
+      "eta": "2025-10-11T09:57:00.000Z",
+      "etd": "2025-10-12T20:27:00.000Z",
+      "style": {
+        "left": "calc(798 / 1005 * 100%)",
+        "width": "calc(110/1005*100%)",
+        "top": "402.375px",
+        "height": "86.25px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762414838972",
+      "name": "VIET THUAN 12-07",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "",
+      "berthName": "K12",
+      "eta": "2025-10-08T20:10:00.000Z",
+      "etd": "2025-10-09T07:50:00.000Z",
+      "style": {
+        "left": "calc(361/1005*100%)",
+        "width": "calc(120/1005*100%)",
+        "top": "247.91666666666669px",
+        "height": "29.166666666666668px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762417208585",
+      "name": "VIET THUAN 235-06",
+      "dwt": 1000,
+      "loa": 147,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "5987",
+      "berthName": "K12A",
+      "eta": "2025-10-12T23:55:00.000Z",
+      "etd": "2025-10-14T00:00:00.000Z",
+      "style": {
+        "left": "calc(236 / 1005 * 100%)",
+        "width": "calc(147/1005*100%)",
+        "top": "497.2916666666667px",
+        "height": "60.20833333333334px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762417488552",
+      "name": "XIN HAI TONG 37",
+      "dwt": 1000,
+      "loa": 190,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "5243",
+      "berthName": "K12C",
+      "eta": "2025-10-12T22:45:00.000Z",
+      "etd": "2025-10-15T12:50:00.000Z",
+      "style": {
+        "left": "calc(-6 / 1005 * 100%)",
+        "width": "calc(190/1005*100%)",
+        "top": "494.37500000000006px",
+        "height": "155.20833333333331px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762417871702",
+      "name": "BAI MEI 8",
+      "dwt": 1000,
+      "loa": 178,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 20536,
+      "berthName": "K12",
+      "eta": "2025-10-13T10:50:00.000Z",
+      "etd": "2025-10-14T18:00:00.000Z",
+      "style": {
+        "left": "calc(399 / 1005 * 100%)",
+        "width": "calc(178/1005*100%)",
+        "top": "524.5833333333334px",
+        "height": "77.91666666666667px"
+      },
+      "mandra": "",
+      "gapWarning": true
+    },
+    {
+      "id": "W1762418075150",
+      "name": "NEWSUN SYMPHONY",
+      "dwt": 1000,
+      "loa": 170,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 23672,
+      "berthName": "TT2",
+      "eta": "2025-10-13T17:00:00.000Z",
+      "etd": "2025-10-16T12:15:00.000Z",
+      "style": {
+        "left": "calc(793 / 1005 * 100%)",
+        "width": "calc(170/1005*100%)",
+        "top": "529.375px",
+        "height": "168.125px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762418223702",
+      "name": "GIA LINH 368",
+      "dwt": 1000,
+      "loa": 117,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 13466,
+      "berthName": "K12",
+      "eta": "2025-10-15T17:00:00.000Z",
+      "etd": "2025-10-18T04:30:00.000Z",
+      "style": {
+        "left": "calc(322 / 1005 * 100%)",
+        "width": "calc(117/1005*100%)",
+        "top": "658.3333333333333px",
+        "height": "148.75px"
+      },
+      "mandra": "",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762418346590",
+      "name": "VIET THUAN 10-05",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 10665,
+      "berthName": "K12",
+      "eta": "2025-10-16T15:24:00.000Z",
+      "etd": "2025-10-18T04:24:00.000Z",
+      "style": {
+        "left": "calc(454 / 1005 * 100%)",
+        "width": "calc(120/1005*100%)",
+        "top": "715px",
+        "height": "92.5px"
+      },
+      "mandra": "",
+      "gapWarning": true
+    },
+    {
+      "id": "W1762419196101",
+      "name": "JUMEIRAH BEACH",
+      "dwt": 1000,
+      "loa": 180,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "8654",
+      "berthName": "TT2",
+      "eta": "2025-10-19T08:30:00.000Z",
+      "etd": "2025-10-20T18:10:00.000Z",
+      "style": {
+        "left": "calc(793/1005*100%)",
+        "width": "calc(180/1005*100%)",
+        "top": "878.75px",
+        "height": "84.16666666666666px"
+      },
+      "mandra": "",
+      "start": "20",
+      "end": 200,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762419911915",
+      "name": "VIET THUAN 215-06",
+      "dwt": 1000,
+      "loa": 168,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 3703,
+      "berthName": "K12A",
+      "eta": "2025-10-19T17:30:00.000Z",
+      "etd": "2025-10-21T06:50:00.000Z",
+      "style": {
+        "left": "calc(241/1005*100%)",
+        "width": "calc(168/1005*100%)",
+        "top": "901.25px",
+        "height": "93.33333333333333px"
+      },
+      "mandra": "",
+      "start": "12",
+      "end": 180,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762420692594",
+      "name": "TU CUONG 68",
+      "dwt": 1000,
+      "loa": 117,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 10935,
+      "berthName": "K12A",
+      "eta": "2025-10-22T12:30:00.000Z",
+      "etd": "2025-10-23T23:10:00.000Z",
+      "style": {
+        "left": "calc(244/1005*100%)",
+        "width": "calc(117/1005*100%)",
+        "top": "1068.75px",
+        "height": "86.66666666666667px"
+      },
+      "mandra": "",
+      "start": "15",
+      "end": 132,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762421417490",
+      "name": "TS HONOUR",
+      "dwt": 1000,
+      "loa": 182,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 9914,
+      "berthName": "K12",
+      "eta": "2025-10-23T06:45:00.000Z",
+      "etd": "2025-11-02T14:15:00.000Z",
+      "style": {
+        "left": "calc(544/1005*100%)",
+        "width": "calc(182/1005*100%)",
+        "top": "1114.375px",
+        "height": "618.75px"
+      },
+      "mandra": "",
+      "start": "183",
+      "end": 365,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762484498020",
+      "name": "VIE THUAN 12-06",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 7394,
+      "berthName": "TT2",
+      "eta": "2025-10-23T20:10:00.000Z",
+      "etd": "2025-10-25T00:30:00.000Z",
+      "style": {
+        "left": "calc(890/1005*100%)",
+        "width": "calc(120/1005*100%)",
+        "top": "1147.9166666666665px",
+        "height": "70.83333333333333px"
+      },
+      "mandra": "",
+      "start": "117",
+      "end": 237,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762484876898",
+      "name": "VIET THUAN 12-07",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 7387,
+      "berthName": "K12C",
+      "eta": "2025-10-23T20:30:00.000Z",
+      "etd": "2025-10-24T12:00:00.000Z",
+      "style": {
+        "left": "calc(65/1005*100%)",
+        "width": "calc(120/1005*100%)",
+        "top": "1148.75px",
+        "height": "38.75px"
+      },
+      "mandra": "",
+      "start": "55",
+      "end": 175,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762485109338",
+      "name": "VIET THUAN 12-01",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 125,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 8443,
+      "berthName": "K12A",
+      "eta": "2025-10-24T21:10:00.000Z",
+      "etd": "2025-10-26T22:50:00.000Z",
+      "style": {
+        "left": "calc(243/1005*100%)",
+        "width": "calc(125/1005*100%)",
+        "top": "1210.4166666666667px",
+        "height": "124.16666666666669px"
+      },
+      "mandra": "",
+      "start": "14",
+      "end": 139,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762485461674",
+      "name": "HAI PHAT 135",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 4538,
+      "berthName": "K12C",
+      "eta": "2025-10-24T20:45:00.000Z",
+      "etd": "2025-10-25T13:40:00.000Z",
+      "style": {
+        "left": "calc(65/1005*100%)",
+        "width": "calc(120/1005*100%)",
+        "top": "1209.375px",
+        "height": "42.29166666666667px"
+      },
+      "mandra": "",
+      "start": "55",
+      "end": 175,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486253194",
+      "name": "LI FA 3",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 190,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 38528,
+      "berthName": "K12C",
+      "eta": "2025-10-26T15:15:00.000Z",
+      "etd": "2025-11-02T13:30:00.000Z",
+      "style": {
+        "left": "calc(-5/1005*100%)",
+        "width": "calc(190/1005*100%)",
+        "top": "1315.625px",
+        "height": "415.625px"
+      },
+      "mandra": "",
+      "start": -15,
+      "end": "175",
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486383498",
+      "name": "BAO QIAO 77",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 147,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 14943,
+      "berthName": "TT2",
+      "eta": "2025-10-28T10:00:00.000Z",
+      "etd": "2025-10-29T11:00:00.000Z",
+      "style": {
+        "left": "calc(783/1005*100%)",
+        "width": "calc(147/1005*100%)",
+        "top": "1422.5px",
+        "height": "62.50000000000001px"
+      },
+      "mandra": "",
+      "start": "10",
+      "end": 157,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486447530",
+      "name": "TOMINI OROSHI",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 180,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 4337,
+      "berthName": "K12A",
+      "eta": "2025-10-29T01:25:00.000Z",
+      "etd": "2025-11-01T05:00:00.000Z",
+      "style": {
+        "left": "calc(212/1005*100%)",
+        "width": "calc(180/1005*100%)",
+        "top": "1461.0416666666665px",
+        "height": "188.95833333333331px"
+      },
+      "mandra": "",
+      "start": "-17",
+      "end": 163,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486581010",
+      "name": "TRUNG THANG 66",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 110,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 6157,
+      "berthName": "TT2",
+      "eta": "2025-10-29T14:30:00.000Z",
+      "etd": "2025-11-01T21:30:00.000Z",
+      "style": {
+        "left": "calc(781/1005*100%)",
+        "width": "calc(110/1005*100%)",
+        "top": "1493.75px",
+        "height": "197.5px"
+      },
+      "mandra": "",
+      "start": "8",
+      "end": 118,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486663178",
+      "name": "TRUNG THANG 56",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 107,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 5309,
+      "berthName": "TT2",
+      "eta": "2025-10-30T11:00:00.000Z",
+      "etd": "2025-10-31T21:15:00.000Z",
+      "style": {
+        "left": "calc(903/1005*100%)",
+        "width": "calc(107/1005*100%)",
+        "top": "1545px",
+        "height": "85.625px"
+      },
+      "mandra": "",
+      "start": "130",
+      "end": 237,
+      "gapWarning": false
+    },
+    {
+      "id": "W1762486824066",
+      "name": "F.NAVIGATOR",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 119,
+      "beam": 20,
+      "cargoType": "Container",
+      "cargo": "",
+      "berthName": "K12B",
+      "eta": "2025-10-02T05:00:00.000Z",
+      "etd": "2025-10-02T17:45:00.000Z",
+      "style": {
+        "left": "calc(584/1005*100%)",
+        "width": "calc(119/1005*100%)",
+        "top": "90px",
+        "height": "31.875px"
+      },
+      "mandra": "",
+      "start": "355",
+      "end": 474,
+      "gapWarning": false,
+      "startPosition": 35,
+      "endPosition": 154
+    },
+    {
+      "id": "W1762487159690",
+      "name": "BD MARINER",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 150,
+      "beam": 20,
+      "cargoType": "Container",
+      "cargo": "",
+      "berthName": "K12",
+      "eta": "2025-10-02T05:00:00.000Z",
+      "etd": "2025-10-03T03:05:00.000Z",
+      "style": {
+        "left": "calc(414/1005*100%)",
+        "width": "calc(150/1005*100%)",
+        "top": "90px",
+        "height": "55.20833333333px"
+      },
+      "mandra": "",
+      "start": "183",
+      "end": 333,
+      "gapWarning": false,
+      "startPosition": 53,
+      "endPosition": 203
+    },
+    {
+      "id": "W1762506275234",
+      "name": "BD NAVIGATOR",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 150,
+      "beam": 20,
+      "cargoType": "Container",
+      "cargo": 0,
+      "berthName": "K12",
+      "eta": null,
+      "etd": null,
+      "startPosition": 0,
+      "endPosition": 150,
+      "style": {
+        "left": "calc(361/1005*100%)",
+        "width": "calc(150/1005*100%)"
+      }
+    },
+    {
+      "id": "W1762403589436",
+      "name": "GLOBAL 88",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 80,
+      "beam": 20,
+      "cargoType": "Hàng khác",
+      "cargo": "",
+      "berthName": "K12A",
+      "eta": "2025-10-06T21:24:00.000Z",
+      "etd": "2025-10-10T14:39:00.000Z",
+      "style": {
+        "width": "calc(80/1005*100%)",
+        "height": "223.125px",
+        "left": "calc(234/1005*100%)"
+      },
+      "mandra": "",
+      "gapWarning": false,
+      "startPosition": 5,
+      "endPosition": 85,
+      "start": "5",
+      "end": 85
+    },
+    {
+      "id": "W1762404118059",
+      "name": "DINH GIA 79",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 120,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": "5635",
+      "berthName": "K12A",
+      "eta": "2025-10-11T12:40:00.000Z",
+      "etd": "2025-10-11T20:00:00.000Z",
+      "style": {
+        "width": "calc(120/1005*100%)",
+        "height": "18.333333333333336px",
+        "left": "calc(229/1005*100%)"
+      },
+      "mandra": "",
+      "gapWarning": false,
+      "startPosition": 0,
+      "endPosition": 120
+    }
+  ],
+  "waitingShips": [],
+  "startDate": "2025-09-30T17:00:00.000Z",
+  "numDays": "30",
+  "cranes": [
+    {
+      "id": "GW1",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(50 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW2",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(130 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW3",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(270 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW4",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(330 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW5",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(450 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC1",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "calc(590 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC2",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "calc(680 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB1",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(57 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB40",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(137 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    }
+  ]
+};
+
+    // Utilities
+    function parseDate(s){
+      if(!s) return null;
+      const d = new Date(s);
+      return isFinite(d) ? d : null;
+    }
+    function fmtDate(d){
+      if(!d) return '-';
+      // format: HH:mm | DD/MM/YYYY
+      const options = {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'};
+      try{
+        const str = d.toLocaleString('vi-VN', options).replace(',', '');
+        const parts = str.split(' ');
+        if(parts.length === 2){
+          return parts[1] + ' | ' + parts[0];
+        }
+        return str;
+      }catch(e){return d.toISOString().replace('T',' ').slice(0,16)}
+    }
+    function fmtDuration(start, end){
+      if(!start || !end) return '-';
+      const ms = end - start;
+      if(ms <= 0) return '0 giờ';
+      const days = Math.floor(ms / (24*3600*1000));
+      const hours = Math.floor((ms % (24*3600*1000)) / (3600*1000));
+      let parts = [];
+      if(days>0) parts.push(days + ' ngày');
+      if(hours>0) parts.push(hours + ' giờ');
+      if(parts.length===0) return '0 giờ';
+      return parts.join(' ');
+    }
+
+    function safe(v, fallback='-'){return (v===null||v===undefined||v==='')?fallback:v}
+    // format numbers with dot as thousands separator (e.g. 12.345)
+    function fmtNumber(v){
+      if(v===null||v===undefined||v==='') return '';
+      // try parse numeric value from string
+      const n = Number(String(v).toString().replace(/[^0-9.-]/g,''));
+      if(!isFinite(n)) return String(v);
+      try{
+        return new Intl.NumberFormat('de-DE').format(n);
+      }catch(e){
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+    }
+
+    // cargo type color helper (match planner colors)
+    function getCargoColor(type){
+      if(!type) return '#6b7280'; // gray
+      const t = String(type).toLowerCase();
+      if(t.includes('sắt') || t.includes('thép') ) return '#16a34a'; // green
+      if(t.includes('cont') || t.includes('container')) return '#f97316'; // orange
+      if(t.includes('khác') || t.includes('khac') || t.includes('hàng khác')) return '#2563eb'; // blue
+      return '#2563eb';
+    }
+    // cargo unit helper
+    function getCargoUnit(type){
+      if(!type) return '';
+      const t = String(type).toLowerCase();
+      if(t.includes('sắt') || t.includes('thép')) return 'Tấn';
+      if(t.includes('cont') || t.includes('container')) return 'cont';
+      if(t.includes('khác') || t.includes('khac') || t.includes('hàng khác')) return 'Tấn';
+      return '';
+    }
+
+    // prepare consolidated list
+    function buildList(data){
+      const berthed = (data.berthedShips || []).map(s=>({...s, _status:'Berthed'}));
+      const waiting = (data.waitingShips || []).map(s=>({...s, _status:'Waiting'}));
+      const all = berthed.concat(waiting);
+      // parse dates and compute derived fields
+      const normalized = all.map(s=>{
+        const eta = parseDate(s.eta);
+        const etd = parseDate(s.etd);
+        const durationMins = (eta && etd) ? Math.max(0, Math.round((etd - eta)/60000)) : null;
+        return {...s, _eta:eta, _etd:etd, _duration: fmtDuration(eta,etd), _durationMins: durationMins}
+      });
+      // sort by ETA ascending; null ETAs at bottom
+      normalized.sort((a,b)=>{
+        if(a._eta === null && b._eta === null) return 0;
+        if(a._eta === null) return 1;
+        if(b._eta === null) return -1;
+        return a._eta - b._eta;
+      });
+      return normalized;
+    }
+
+    function renderSummary(list){
+      const container = document.getElementById('summary');
+      const total = list.length;
+      const berthed = list.filter(s=>s._status==='Berthed').length;
+      const waiting = list.filter(s=>s._status==='Waiting').length;
+      const etas = list.filter(s=>s._eta).map(s=>s._eta);
+      const etdMax = list.filter(s=>s._etd).map(s=>s._etd);
+      const earliestETA = etas.length?new Date(Math.min(...etas.map(d=>d.getTime()))):null;
+      const latestETA = etas.length?new Date(Math.max(...etas.map(d=>d.getTime()))):null;
+      const latestETD = etdMax.length?new Date(Math.max(...etdMax.map(d=>d.getTime()))):null;
+      // Set title
+      const titleEl = document.getElementById('reportTitle');
+      if (titleEl && earliestETA && latestETA) {
+        const earliestStr = fmtDate(earliestETA);
+        const latestStr = fmtDate(latestETA);
+        titleEl.innerHTML = `BÁO CÁO CHI TIẾT TÀU TỪ <span style="color:#0b5ed7">${earliestStr}</span> ĐẾN <span style="color:#0b5ed7">${latestStr}</span>`;
+      }
+      container.innerHTML = `
+        <div class="stat"><strong>${total}</strong><div class="small">Tổng tàu</div></div>
+        <div class="stat"><strong>${berthed}</strong><div class="small">Tàu đang tại cầu</div></div>
+        <div class="stat"><strong>${waiting}</strong><div class="small">Tàu chờ</div></div>
+        <div class="stat"><strong>${earliestETA?fmtDate(earliestETA):'-'}</strong><div class="small">ETA Sớm nhất</div></div>
+        <div class="stat"><strong>${latestETD?fmtDate(latestETD):'-'}</strong><div class="small">ETD Muộn nhất</div></div>
+      `;
+    }
+
+    function renderTableRows(list){
+      const tbody = document.querySelector('#shipsTable tbody');
+      tbody.innerHTML = '';
+      list.forEach((s, idx)=>{
+        const tr = document.createElement('tr');
+  const cargoUnit = getCargoUnit(s.cargoType);
+  const cargoDisplay = s.cargo ? (' · ' + fmtNumber(s.cargo) + (cargoUnit ? (' ' + cargoUnit) : '')) : '';
+  const nameCell = `<td><strong>${safe(s.name)}</strong><div class="small muted">${safe(s.cargoType)}${cargoDisplay}</div></td>`;
+        const statusClass = s._status==='Berthed'? 'st-berthed' : (s._status==='Waiting' ? 'st-waiting' : 'st-none');
+        const statusCell = `<td><span class="badge-status ${statusClass}">${s._status}</span></td>`;
+        const berthCell = `<td>${safe(s.berthName)}</td>`;
+        const etaCell = `<td class="nowrap">${s._eta?fmtDate(s._eta):'-'}</td>`;
+        const etdCell = `<td class="nowrap">${s._etd?fmtDate(s._etd):'-'}</td>`;
+        const durCell = `<td>${s._duration}</td>`;
+  const cargoColor = getCargoColor(s.cargoType);
+  const cargoAmount = s.cargo ? (' · ' + fmtNumber(s.cargo)) : '';
+  const cargo = `<td><span class="cargo-badge" style="background:${cargoColor};padding:6px 8px;border-radius:8px;color:#fff;font-weight:600;font-size:12px">${safe(s.cargoType)}</span> <span class="small muted">${cargoAmount}</span></td>`;
+  const dwt = `<td class="col-right">${s.dwt || s.dwt === 0 ? fmtNumber(s.dwt) : '-'}</td>`;
+        const dims = `<td class="small nowrap">${safe(s.loa,'-')} × ${safe(s.beam,'-')}</td>`;
+        const posVal = (s.startPosition || s.endPosition) ? `${safe(s.startPosition,'-')}/${safe(s.endPosition,'-')}` : '-';
+        const pos = `<td class="small">${posVal}</td>`;
+        tr.innerHTML = `<td>${idx+1}</td>${nameCell}${statusCell}${berthCell}${etaCell}${etdCell}${durCell}${cargo}${dwt}${dims}${pos}`;
+        tbody.appendChild(tr);
+      });
+    }
+
+  // Sorting state
+  let currentSort = { key: null, dir: 'asc' };
+
+    function sortData(list, key, dir){
+      const factor = dir === 'asc' ? 1 : -1;
+      return [...list].sort((a,b)=>{
+        let va, vb;
+        switch(key){
+          case 'berth': va = a.berthName||''; vb = b.berthName||''; return va.localeCompare(vb)*factor;
+          case 'eta': va = a._eta? a._eta.getTime(): Infinity; vb = b._eta? b._eta.getTime(): Infinity; return (va-vb)*factor;
+          case 'etd': va = a._etd? a._etd.getTime(): Infinity; vb = b._etd? b._etd.getTime(): Infinity; return (va-vb)*factor;
+          case 'duration': {
+            // Prefer precomputed numeric duration if present
+            const vaNum = a._durationMins != null ? a._durationMins : Infinity;
+            const vbNum = b._durationMins != null ? b._durationMins : Infinity;
+            return (vaNum - vbNum) * factor;
+          }
+          case 'cargo': {
+            const parseCargo = (s) => {
+              if(!s.cargo) return 0;
+              // handle container imp/exp like 100/50 -> sum or import? use total numeric sum for sorting
+              const str = String(s.cargo);
+              if(str.includes('/')) {
+                const [imp,exp] = str.split('/').map(x=> parseFloat(x)||0); return imp+exp;
+              }
+              const n = parseFloat(str.replace(/[^0-9./]/g,''))||0; return n;
+            };
+            va = parseCargo(a); vb = parseCargo(b); return (va-vb)*factor;
+          }
+          default: return 0;
+        }
+      });
+    }
+
+    function attachSortHandlers(list){
+      const headers = document.querySelectorAll('th.sortable');
+      headers.forEach(h=>{
+        h.addEventListener('click', ()=>{
+          const key = h.getAttribute('data-sort');
+          let dir = 'asc';
+          if(currentSort.key === key){
+            dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+          }
+          currentSort = { key, dir };
+          // update indicators
+          headers.forEach(o=>{
+            o.classList.remove('active');
+            const ind = o.querySelector('.sort-indicator');
+            if(ind) ind.textContent='';
+          });
+          h.classList.add('active');
+          const indicator = h.querySelector('.sort-indicator');
+          if(indicator) indicator.textContent = dir==='asc' ? '▲' : '▼';
+          const sorted = sortData(list, key, dir);
+          renderTableRows(sorted);
+        });
+      });
+    }
+
+  function downloadCSV(list){
+      const headers = ['No','Name','Status','Berth','ETA','ETD','Duration','CargoType','Cargo','DWT','LOA','Beam','Vị trí cập'];
+      const rows = list.map((s, idx)=>{
+        const pos = (s.startPosition || s.endPosition) ? `${s.startPosition||''}/${s.endPosition||''}` : '';
+        const cargoUnit = getCargoUnit(s.cargoType);
+        const cargoCsv = s.cargo ? (fmtNumber(s.cargo) + (cargoUnit ? (' ' + cargoUnit) : '')) : '';
+        return [
+          idx+1,
+          s.name||'',
+          s._status||'',
+          s.berthName||'',
+          s._eta?fmtDate(s._eta):'',
+          s._etd?fmtDate(s._etd):'',
+          s._duration||'',
+          s.cargoType||'',
+          cargoCsv,
+          (s.dwt || s.dwt === 0) ? fmtNumber(s.dwt) : '',
+          s.loa||'',
+          s.beam||'',
+          pos
+        ];
+      });
+  const csvContent = [headers].concat(rows).map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  // Prefix with UTF-8 BOM so Excel (Windows) recognizes UTF-8 and displays Vietnamese correctly
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csvContent], {type: 'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ships_report_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'_')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+  // Sorting state for static report as well
+  currentSort = { key: null, dir: 'asc' };
+  let currentList = [];
+
+    function sortData(list, key, dir){
+      const factor = dir === 'asc' ? 1 : -1;
+      return [...list].sort((a,b)=>{
+        let va, vb;
+        switch(key){
+          case 'berth': va = a.berthName||''; vb = b.berthName||''; return va.localeCompare(vb)*factor;
+          case 'eta': va = a._eta? a._eta.getTime(): Infinity; vb = b._eta? b._eta.getTime(): Infinity; return (va-vb)*factor;
+          case 'etd': va = a._etd? a._etd.getTime(): Infinity; vb = b._etd? b._etd.getTime(): Infinity; return (va-vb)*factor;
+          case 'duration': {
+            const parseDur = d => {
+              if(!d || d==='-') return Infinity;
+              let days = 0, hours = 0;
+              let m = String(d).match(/(\d+)\s*ngày/i); if(m) days = parseInt(m[1],10);
+              m = String(d).match(/(\d+)\s*giờ/i); if(m) hours = parseInt(m[1],10);
+              if(days===0 && hours===0){
+                const nums = String(d).match(/\d+/g);
+                if(nums){ if(nums.length>=2){ days=parseInt(nums[0],10); hours=parseInt(nums[1],10);} else {hours=parseInt(nums[0],10);} }
+              }
+              return days*24*60 + hours*60;
+            };
+            va = parseDur(a._duration); vb = parseDur(b._duration); return (va-vb)*factor;
+          }
+          case 'cargo': {
+            const parseCargo = (s) => {
+              if(!s.cargo) return 0;
+              const str = String(s.cargo);
+              if(str.includes('/')) { const parts = str.split('/').map(x=> parseFloat(x)||0); return (parts[0]||0)+(parts[1]||0); }
+              const n = parseFloat(str.replace(/[^0-9./]/g,''))||0; return n;
+            };
+            va = parseCargo(a); vb = parseCargo(b); return (va-vb)*factor;
+          }
+          default: return 0;
+        }
+      });
+    }
+
+    function attachSortHandlers(baseList){
+      const headers = document.querySelectorAll('th.sortable');
+      headers.forEach(h=>{
+        h.addEventListener('click', ()=>{
+          const key = h.getAttribute('data-sort');
+          let dir = 'asc';
+          if(currentSort.key === key){ dir = currentSort.dir === 'asc' ? 'desc' : 'asc'; }
+          currentSort = { key, dir };
+          headers.forEach(o=>{ o.classList.remove('active'); const ind=o.querySelector('.sort-indicator'); if(ind) ind.textContent=''; });
+          h.classList.add('active');
+          const indicator = h.querySelector('.sort-indicator'); if(indicator) indicator.textContent = dir==='asc' ? '▲' : '▼';
+          currentList = sortData(baseList, key, dir);
+          renderTableRows(currentList);
+        });
+      });
+    }
+
+    function renderCharts(list){
+      const container = document.getElementById('charts');
+      // Group by cargoType
+      const cargoStats = {};
+      list.forEach(s => {
+        const type = s.cargoType || 'Khác';
+        if (!cargoStats[type]) cargoStats[type] = { count: 0, totalCargo: 0 };
+        cargoStats[type].count++;
+        if (type.toLowerCase().includes('container') || type.toLowerCase().includes('cont')) {
+          // For container, handle import/export
+          if (!cargoStats[type].totalCargo) cargoStats[type].totalCargo = { import: 0, export: 0 };
+          const cargoStr = String(s.cargo || '');
+          if (cargoStr.includes('/')) {
+            const [imp, exp] = cargoStr.split('/').map(x => parseFloat(x.trim()) || 0);
+            cargoStats[type].totalCargo.import += imp;
+            cargoStats[type].totalCargo.export += exp;
+          } else {
+            const num = parseFloat(cargoStr) || 0;
+            cargoStats[type].totalCargo.import += num;
+          }
+        } else {
+          const cargoNum = parseFloat(s.cargo) || 0;
+          cargoStats[type].totalCargo += cargoNum;
+        }
+      });
+      // Pie chart for ship count (ordered Sắt thép, Container, Khác, then others)
+      const desiredOrder = ['sắt thép','sắt','thép','container','cont','khác'];
+      const countLabels = Object.keys(cargoStats).sort((a,b)=>{
+        const al = a.toLowerCase();
+        const bl = b.toLowerCase();
+        const ai = desiredOrder.findIndex(k=>al.includes(k));
+        const bi = desiredOrder.findIndex(k=>bl.includes(k));
+        const av = ai === -1 ? 999 : ai;
+        const bv = bi === -1 ? 999 : bi;
+        if(av === bv) return al.localeCompare(bl);
+        return av - bv;
+      });
+      const countData = countLabels.map(l => cargoStats[l].count);
+      // Generate cargo summary text (professional layout) + totals
+      let cargoSummary = '<div style="display:flex;flex-direction:column;gap:8px">';
+      let totalTons = 0; let totalContImp = 0; let totalContExp = 0;
+      countLabels.forEach(label => {
+        const stat = cargoStats[label];
+        const rawLabelLower = label.toLowerCase();
+        let prettyLabel = 'HÀNG ' + rawLabelLower.toUpperCase();
+        if(rawLabelLower.includes('sắt') || rawLabelLower.includes('thép')) prettyLabel = 'HÀNG SẮT THÉP';
+        else if(rawLabelLower.includes('container') || rawLabelLower.includes('cont')) prettyLabel = 'HÀNG CONTAINER';
+        else if(rawLabelLower.includes('khác')) prettyLabel = 'HÀNG KHÁC';
+        const cardColor = getCargoColor(label);
+        if (rawLabelLower.includes('container') || rawLabelLower.includes('cont')) {
+          const imp = stat.totalCargo.import || 0;
+          const exp = stat.totalCargo.export || 0;
+          totalContImp += imp; totalContExp += exp;
+          cargoSummary += `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,.04);border-left:6px solid ${cardColor}">
+              <div style="flex:1;display:flex;flex-direction:column;">
+                <div style="font-size:12px;font-weight:700;color:#334155;letter-spacing:.4px">${prettyLabel}</div>
+                <div style="font-size:14px;font-weight:600;color:#0f172a">Tổng sản lượng: <span style="color:${cardColor}">${fmtNumber(imp)}</span>/<span style="color:#dc2626">${fmtNumber(exp)}</span> <span style="font-size:12px;color:#475569">Cont (Nhập/Xuất)</span></div>
+              </div>
+              <div style="text-align:right;font-size:12px;color:#475569">Số tàu: <strong>${stat.count}</strong></div>
+            </div>`;
+        } else {
+          const unit = 'Tấn';
+          totalTons += (stat.totalCargo || 0);
+          cargoSummary += `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,.04);border-left:6px solid ${cardColor}">
+              <div style="flex:1;display:flex;flex-direction:column;">
+                <div style="font-size:12px;font-weight:700;color:#334155;letter-spacing:.4px">${prettyLabel}</div>
+                <div style="font-size:14px;font-weight:600;color:#0f172a">Tổng sản lượng: <span style="color:${cardColor}">${fmtNumber(stat.totalCargo)}</span> <span style="font-size:12px;color:#475569">${unit}</span></div>
+              </div>
+              <div style="text-align:right;font-size:12px;color:#475569">Số tàu: <strong>${stat.count}</strong></div>
+            </div>`;
+        }
+      });
+      // Totals card
+      cargoSummary += `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:0 1px 2px rgba(0,0,0,.04)">
+          <div style="flex:1;display:flex;flex-direction:column;">
+            <div style="font-size:12px;font-weight:800;color:#0b5ed7;letter-spacing:.6px">TỔNG CỘNG</div>
+            <div style="font-size:14px;font-weight:700;color:#0f172a">${fmtNumber(totalTons)} <span style="font-size:12px;color:#475569">Tấn</span> · <span style="color:#f97316">${fmtNumber(totalContImp)}</span>/<span style="color:#dc2626">${fmtNumber(totalContExp)}</span> <span style="font-size:12px;color:#475569">Cont (Nhập/Xuất)</span></div>
+          </div>
+        </div>`;
+      cargoSummary += '</div>';
+      // Berth-level aggregation
+      const berthStats = {};
+      list.forEach(s => {
+        const berth = s.berthName || 'Khác';
+        if(!berthStats[berth]) berthStats[berth] = { count: 0, tons: 0, contImp: 0, contExp: 0, contCount: 0 };
+        berthStats[berth].count++;
+        const type = (s.cargoType||'').toLowerCase();
+        const cargoStr = String(s.cargo||'').trim();
+        if(type.includes('cont') || type.includes('container')) {
+          berthStats[berth].contCount++;
+          if(cargoStr.includes('/')) {
+            const [imp,exp] = cargoStr.split('/').map(x=>parseFloat(x)||0);
+            berthStats[berth].contImp += imp;
+            berthStats[berth].contExp += exp;
+          } else {
+            const v = parseFloat(cargoStr)||0;
+            berthStats[berth].contImp += v; // treat single value as import
+          }
+        } else if(type.includes('sắt') || type.includes('thép')) {
+          const v = parseFloat(cargoStr)||0;
+          berthStats[berth].tons += v;
+        }
+      });
+      // Fixed order: K12C, K12A, K12, K12B, TT2, Chờ
+      const fixedOrder = ['K12C', 'K12A', 'K12', 'K12B', 'TT2', 'Chờ'];
+      const berthData = fixedOrder.map(berth => ({
+        berth,
+        count: berthStats[berth]?.count || 0,
+        tons: berthStats[berth]?.tons || 0,
+        contTotal: (berthStats[berth]?.contImp || 0) + (berthStats[berth]?.contExp || 0),
+        contCount: berthStats[berth]?.contCount || 0
+      }));
+
+      container.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div class="chart-container">
+            <h3>Tổng số tàu theo loại</h3>
+            <canvas id="shipCountChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Tổng sản lượng theo loại</h3>
+            <div style="padding:16px;">${cargoSummary}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="chart-container">
+              <h3>Thống kê theo bến - Hàng Sắt Thép</h3>
+              <canvas id="steelBerthChart"></canvas>
+            </div>
+            <div class="chart-container">
+              <h3>Thống kê theo bến - Hàng Container</h3>
+              <canvas id="containerBerthChart"></canvas>
+            </div>
+          </div>
+        </div>
+      `;
+      (function(){
+        const el = document.getElementById('shipCountChart');
+        if(!el) { console.warn('shipCountChart canvas not found'); return; }
+        try{
+          new Chart(el, {
+        type: 'pie',
+        data: {
+          labels: countLabels,
+          datasets: [{
+            data: countData,
+            backgroundColor: ['#0b5ed7', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+              color: '#fff',
+              font: { size: 12, weight: 'bold' },
+              formatter: (value, context) => {
+                const label = context.chart.data.labels[context.dataIndex];
+                return `${label} - ${value} tàu`;
+              }
+            }
+          }
+        }
+          });
+        }catch(err){ console.error('Error creating shipCountChart', err); }
+      })();
+      // Steel berth chart
+      (function(){
+        const el = document.getElementById('steelBerthChart');
+        if(!el) { console.warn('steelBerthChart canvas not found'); return; }
+        try{
+          const berthLabels = berthData.map(b => b.berth);
+          const steelData = berthData.map(b => b.tons);
+          const shipCountData = berthData.map(b => b.count);
+          new Chart(el, {
+        type: 'bar',
+        data: {
+          labels: berthLabels,
+          datasets: [
+            { label: 'Sản lượng (Tấn)', data: steelData, backgroundColor: '#10b981', yAxisID: 'y', order: 1 },
+            { label: 'Lượt tàu', data: shipCountData, type: 'line', borderColor: '#0b5ed7', backgroundColor: '#0b5ed7', yAxisID: 'y1', tension: 0.25, pointRadius: 4, order: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+              color: '#0f172a',
+              anchor: 'end',
+              align: 'top',
+              formatter: (value, ctx) => ctx.dataset.type === 'line' ? value : fmtNumber(value)
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Tấn' } },
+            y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: 'Lượt tàu' }, suggestedMax: Math.max(...shipCountData) + 1 }
+          }
+        }
+          });
+        }catch(err){ console.error('Error creating steelBerthChart', err); }
+      })();
+      // Container berth chart
+      (function(){
+        const el = document.getElementById('containerBerthChart');
+        if(!el) { console.warn('containerBerthChart canvas not found'); return; }
+        try{
+          const berthLabels = berthData.map(b => b.berth);
+          const containerData = berthData.map(b => b.contTotal);
+          const shipCountData = berthData.map(b => b.contCount);
+          new Chart(el, {
+        type: 'bar',
+        data: {
+          labels: berthLabels,
+          datasets: [
+            { label: 'Sản lượng (Cont)', data: containerData, backgroundColor: '#f59e0b', yAxisID: 'y', order: 1 },
+            { label: 'Lượt tàu', data: shipCountData, type: 'line', borderColor: '#0b5ed7', backgroundColor: '#0b5ed7', yAxisID: 'y1', tension: 0.25, pointRadius: 4, order: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+              color: '#0f172a',
+              anchor: 'end',
+              align: 'top',
+              formatter: (value, ctx) => ctx.dataset.type === 'line' ? value : fmtNumber(value)
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Cont' } },
+            y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: 'Lượt tàu' }, suggestedMax: Math.max(...shipCountData) + 1 }
+          }
+        }
+          });
+        }catch(err){ console.error('Error creating containerBerthChart', err); }
+      })();
+    }
+
+    function renderInsights(list){
+      const container = document.getElementById('insights');
+      // Find earliest and latest ETD
+      const shipsWithETD = list.filter(s => s._etd);
+      const earliestRelease = shipsWithETD.length ? shipsWithETD.reduce((min, s) => s._etd < min._etd ? s : min) : null;
+      const latestRelease = shipsWithETD.length ? shipsWithETD.reduce((max, s) => s._etd > max._etd ? s : max) : null;
+      container.innerHTML = `
+        <div class="insight-card">
+          <h4>Tàu giải phóng nhanh nhất</h4>
+          <p><strong>${earliestRelease ? earliestRelease.name : 'N/A'}</strong> - ETA: ${earliestRelease ? fmtDate(earliestRelease._eta) : '-'} - ETD: ${earliestRelease ? fmtDate(earliestRelease._etd) : '-'} - Duration: ${earliestRelease ? earliestRelease._duration : '-'}</p>
+        </div>
+        <div class="insight-card">
+          <h4>Tàu giải phóng lâu nhất</h4>
+          <p><strong>${latestRelease ? latestRelease.name : 'N/A'}</strong> - ETA: ${latestRelease ? fmtDate(latestRelease._eta) : '-'} - ETD: ${latestRelease ? fmtDate(latestRelease._etd) : '-'} - Duration: ${latestRelease ? latestRelease._duration : '-'}</p>
+        </div>
+      `;
+    }
+
+    // init
+    (function init(){
+  document.getElementById('genTime').textContent = new Date().toLocaleString();
+  const baseList = buildList(sampleData);
+  renderSummary(baseList);
+  renderCharts(baseList);
+  renderInsights(baseList);
+  // default sort by ETA asc
+  currentSort = { key: 'eta', dir: 'asc' };
+  const headers = document.querySelectorAll('th.sortable');
+  headers.forEach(o=>{ o.classList.remove('active'); const ind=o.querySelector('.sort-indicator'); if(ind) ind.textContent=''; });
+  const etaHeader = document.querySelector('th.sortable[data-sort="eta"]');
+  if(etaHeader){ etaHeader.classList.add('active'); const ind=etaHeader.querySelector('.sort-indicator'); if(ind) ind.textContent='▲'; }
+  currentList = sortData(baseList, 'eta', 'asc');
+  renderTableRows(currentList);
+  attachSortHandlers(baseList);
+      document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+      document.getElementById('btnCsv').addEventListener('click', ()=>downloadCSV(currentList));
+    })();
+  </script>
+</body>
+</html>

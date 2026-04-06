@@ -1,0 +1,240 @@
+{
+  "cranes": [
+    {
+      "id": "GW1",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(50 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW2",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(130 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW3",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "87.34972754795618%",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW4",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(330 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW5",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "67.8674013485626%",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC1",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "81.84900247750686%",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC2",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "calc(680 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB1",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(57 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB40",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(137 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    }
+  ],
+  "berthedShips": [
+    {
+      "id": 2,
+      "name": "LI FA 3",
+      "cargo": "38000 Tấn",
+      "dwt": 50000,
+      "loa": 190,
+      "cargoType": "Sắt thép",
+      "mandra": null,
+      "eta": "2025-11-04T19:00:00.000Z",
+      "etd": "2025-11-05T19:00:00.000Z",
+      "berthName": "K12",
+      "style": {
+        "width": "calc(190/1005*100%)",
+        "left": "calc(363 / 1005 * 100%)"
+      }
+    },
+    {
+      "id": "W1762398741373",
+      "name": "TRUNG THANG 68",
+      "imo": "",
+      "dwt": 15000,
+      "loa": 90,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 0,
+      "berthName": "K12",
+      "eta": "2025-11-02T17:00:00.000Z",
+      "etd": "2025-11-03T17:00:00.000Z",
+      "style": {
+        "left": "calc(432 / 1005 * 100%)",
+        "width": "calc(90/1005*100%)"
+      }
+    },
+    {
+      "id": 6,
+      "name": "TOMINI OROSHI",
+      "cargo": "15500 Tấn",
+      "dwt": 45000,
+      "loa": 180,
+      "cargoType": "Sắt thép",
+      "mandra": "left",
+      "eta": "2025-10-31T17:00:00.000Z",
+      "etd": "2025-11-02T17:00:00.000Z",
+      "berthName": "K12C",
+      "style": {
+        "width": "calc(180/1005*100%)",
+        "left": "calc(16 / 1005 * 100%)"
+      }
+    },
+    {
+      "id": 4,
+      "name": "BD NAVIGATOR",
+      "cargo": "500 Teus",
+      "dwt": 25000,
+      "loa": 150,
+      "cargoType": "Container",
+      "mandra": "right",
+      "eta": "2025-11-02T17:00:00.000Z",
+      "etd": "2025-11-03T17:00:00.000Z",
+      "berthName": "K12B",
+      "style": {
+        "width": "calc(150/1005*100%)",
+        "left": "calc(586 / 1005 * 100%)",
+        "top": "120px",
+        "height": "60px"
+      },
+      "beam": "",
+      "gapWarning": false
+    },
+    {
+      "id": 1,
+      "name": "BD MARINER",
+      "cargo": "500 Teus",
+      "dwt": 20000,
+      "loa": 150,
+      "cargoType": "Container",
+      "mandra": "left",
+      "eta": "2025-11-02T05:00:00.000Z",
+      "etd": "2025-11-04T05:00:00.000Z",
+      "berthName": "K12A",
+      "style": {
+        "width": "calc(150/1005*100%)",
+        "left": "calc(271 / 1005 * 100%)"
+      }
+    }
+  ],
+  "waitingShips": [
+    {
+      "id": "W1762398799419",
+      "name": "asd",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 100,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 0,
+      "eta": null,
+      "etd": null
+    },
+    {
+      "id": "W1762398802716",
+      "name": "asdas",
+      "imo": "",
+      "dwt": 1000,
+      "loa": 100,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 0,
+      "eta": null,
+      "etd": null
+    },
+    {
+      "id": 5,
+      "name": "BD STAR",
+      "cargo": "400 Teus",
+      "dwt": 20000,
+      "loa": 121,
+      "cargoType": "Container",
+      "mandra": null,
+      "eta": "2025-11-23T05:00:00.000Z",
+      "etd": "2025-11-24T05:00:00.000Z",
+      "berthName": "K12",
+      "style": {
+        "width": "calc(121/1005*100%)"
+      }
+    },
+    {
+      "id": 3,
+      "name": "FORTUNE FREIGHTER",
+      "cargo": "300 Teus",
+      "dwt": 25000,
+      "loa": 124,
+      "cargoType": "Container",
+      "mandra": null,
+      "eta": "2025-11-28T17:00:00.000Z",
+      "etd": "2025-11-29T17:00:00.000Z",
+      "berthName": "K12B",
+      "style": {
+        "width": "calc(124/1005*100%)"
+      }
+    },
+    {
+      "id": "W1762399928121",
+      "name": "HOANG",
+      "imo": "",
+      "dwt": 30000,
+      "loa": 200,
+      "beam": 20,
+      "cargoType": "Sắt thép",
+      "cargo": 0
+    }
+  ],
+  "startDate": "2025-10-31T17:00:00.000Z",
+  "numDays": "10"
+}

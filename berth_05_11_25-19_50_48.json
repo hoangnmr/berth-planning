@@ -1,0 +1,186 @@
+{
+  "cranes": [
+    {
+      "id": "GW1",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(50 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW2",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(130 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW3",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(270 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW4",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(330 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GW5",
+      "shape": "circle",
+      "colorClass": "crane-color-gw",
+      "left": "calc(450 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC1",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "calc(590 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "GC2",
+      "shape": "square",
+      "colorClass": "crane-color-gc",
+      "left": "calc(680 / 743 * 100%)",
+      "block": "gw-main",
+      "minPercent": 72.5,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB1",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(57 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    },
+    {
+      "id": "LB40",
+      "shape": "circle",
+      "colorClass": "crane-color-lb",
+      "left": "calc(137 / 222 * 100%)",
+      "block": "tt2",
+      "minPercent": 0,
+      "maxPercent": 100
+    }
+  ],
+  "berthedShips": [
+    {
+      "id": 1,
+      "name": "BD MARINER",
+      "cargo": "500 Teus",
+      "dwt": 20000,
+      "loa": 150,
+      "cargoType": "Container",
+      "mandra": "left",
+      "eta": "2025-10-31T17:00:00.000Z",
+      "etd": "2025-11-02T17:00:00.000Z",
+      "berthName": "K12A",
+      "style": {
+        "left": "calc(279 / 1005 * 100%)",
+        "width": "calc(150 / 1005 * 100%)"
+      }
+    },
+    {
+      "id": 2,
+      "name": "LI FA 3",
+      "cargo": "38000 Tấn",
+      "dwt": 50000,
+      "loa": 190,
+      "cargoType": "Sắt thép",
+      "mandra": "right",
+      "eta": "2025-11-02T17:00:00.000Z",
+      "etd": "2025-11-04T17:00:00.000Z",
+      "berthName": "TT2",
+      "style": {
+        "left": "calc(793 / 1005 * 100%)",
+        "width": "calc(190 / 1005 * 100%)"
+      }
+    },
+    {
+      "id": 6,
+      "name": "TOMINI OROSHI",
+      "cargo": "15500 Tấn",
+      "dwt": 45000,
+      "loa": 180,
+      "cargoType": "Sắt thép",
+      "mandra": "left",
+      "eta": "2025-11-08T17:00:00.000Z",
+      "etd": "2025-11-10T17:00:00.000Z",
+      "berthName": "K12",
+      "style": {
+        "left": "calc(379 / 1005 * 100%)",
+        "width": "calc(180 / 1005 * 100%)"
+      }
+    },
+    {
+      "id": 3,
+      "name": "FORTUNE FREIGHTER",
+      "cargo": "300 Teus",
+      "dwt": 25000,
+      "loa": 124,
+      "cargoType": "Container",
+      "mandra": null,
+      "eta": "2025-11-28T17:00:00.000Z",
+      "etd": "2025-11-29T17:00:00.000Z",
+      "berthName": "K12B",
+      "style": {
+        "left": "calc(586 / 1005 * 100%)",
+        "width": "calc(124/1005*100%)"
+      }
+    },
+    {
+      "id": 5,
+      "name": "BD STAR",
+      "cargo": "400 Teus",
+      "dwt": 20000,
+      "loa": 121,
+      "cargoType": "Container",
+      "mandra": null,
+      "eta": "2025-11-23T05:00:00.000Z",
+      "etd": "2025-11-24T05:00:00.000Z",
+      "berthName": "K12",
+      "style": {
+        "left": "calc(361/1005*100%)",
+        "width": "calc(121/1005*100%)"
+      }
+    },
+    {
+      "id": 4,
+      "name": "BD NAVIGATOR",
+      "cargo": "500 Teus",
+      "dwt": 25000,
+      "loa": 150,
+      "cargoType": "Container",
+      "mandra": null,
+      "eta": "2025-11-20T05:00:00.000Z",
+      "etd": "2025-11-21T05:00:00.000Z",
+      "berthName": "K12B",
+      "style": {
+        "left": "calc(549/1005*100%)",
+        "width": "calc(150/1005*100%)"
+      }
+    }
+  ],
+  "waitingShips": [],
+  "startDate": "2025-10-31T17:00:00.000Z",
+  "numDays": "30"
+}

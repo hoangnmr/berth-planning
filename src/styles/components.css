@@ -1,0 +1,406 @@
+/* Cảnh báo khoảng cách tối thiểu LOA (border vàng) */
+.ship-gap-warning {
+  box-shadow: 0 0 0 3px #ffeb3b, 0 4px 10px rgba(255, 235, 59, 0.3) !important;
+  border: 2px solid #ffeb3b !important;
+  z-index: 32 !important;
+}
+/* src/styles/components.css */
+
+/* === CẦN CẨU === */
+.crane-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.crane-cab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.crane-square {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+.crane-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+.crane-color-gc { background-color: var(--green); }
+.crane-color-gw { background-color: var(--blue-dark); }
+.crane-color-lb { 
+  background-color: var(--primary-blue-light); 
+  border-color: var(--primary-blue);
+  color: var(--text-primary);
+}
+
+/* === TÀU Ở BẾN (v23.0 - SỬA LỖI 1 & 2) === */
+.berthed-ship {
+  position: absolute;
+  height: 48px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex; /* DÙNG FLEXBOX */
+  align-items: stretch;
+  cursor: grab;
+  z-index: 20;
+  border: 1px solid var(--border-dark);
+  padding: 0;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Highlight khi tàu được chọn */
+.ship-selected {
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  z-index: 30 !important;
+  transform: scale(1.02);
+}
+
+/* Warning khi tàu chồng lấn */
+.ship-overlap {
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.8), 0 4px 10px rgba(244, 67, 54, 0.5) !important;
+  z-index: 31 !important;
+  background-color: rgba(244, 67, 54, 0.2) !important;
+  border: 2px solid #f44336 !important;
+}
+
+.ship-fill-container { background-color: var(--fill-container); }
+.ship-fill-steel { background-color: var(--fill-steel); }
+.ship-fill-other { background-color: var(--fill-other); }
+
+/* Màu đậm (KHÔNG GÁN VÀO ĐÂY) - removed empty rules to satisfy linter */
+
+/* (SỬA LỖI 1) Mũi tàu (Mũi tên có màu) */
+.ship-bow {
+  flex-basis: 18px; /* Chiều rộng khối mũi */
+  flex-shrink: 0;
+  position: relative;
+  background-color: transparent !important;
+}
+.ship-bow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0 !important; /* BẮT BUỘC BẰNG 0 */
+  height: 0 !important; /* BẮT BUỘC BẰNG 0 */
+  border-style: solid;
+  border-color: transparent;
+  background-color: transparent !important;
+}
+/* Mũi (mạn trái) */
+.mandra-left .ship-bow::before {
+  border-width: 6px 10px 6px 0;
+}
+.mandra-left .ship-bow.ship-color-container::before { border-right-color: var(--orange); }
+.mandra-left .ship-bow.ship-color-steel::before { border-right-color: var(--green); }
+.mandra-left .ship-bow.ship-color-other::before { border-right-color: var(--blue-other); }
+/* Mũi (mạn phải) */
+.mandra-right .ship-bow::before {
+  border-width: 6px 0 6px 10px;
+}
+.mandra-right .ship-bow.ship-color-container::before { border-left-color: var(--orange); }
+.mandra-right .ship-bow.ship-color-steel::before { border-left-color: var(--green); }
+.mandra-right .ship-bow.ship-color-other::before { border-left-color: var(--blue-other); }
+
+
+/* Cabin (Đuôi tàu có màu) */
+.ship-cabin {
+  flex-basis: 18px; /* Chiều rộng khối cabin */
+  flex-shrink: 0;
+  position: relative;
+}
+.ship-cabin.ship-color-container { background-color: var(--orange); }
+.ship-cabin.ship-color-steel { background-color: var(--green); }
+.ship-cabin.ship-color-other { background-color: var(--blue-other); }
+
+/* Khối Text (Phần màu nhạt) */
+.ship-details-wrapper {
+  flex-grow: 1; /* Tự động co giãn */
+  text-align: center;
+  z-index: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.ship-text-content {
+  text-align: center;
+}
+.ship-details {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.ship-details-sub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* (SỬA LỖI 2) NÚT BẤM */
+.ship-hover-buttons {
+  position: absolute;
+  bottom: 6px; 
+  left: 50%;
+  transform: translateX(-50%); /* Căn giữa hoàn hảo trên .ship-details-wrapper */
+  display: none;
+  gap: 8px;
+  z-index: 5;
+}
+.ship-hover-buttons button {
+  width: auto;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ship-hover-buttons button.btn-wait {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+.ship-hover-buttons button.btn-wait:hover {
+  background: var(--fill-container);
+  color: #a05200;
+}
+.ship-hover-buttons button.btn-depart {
+  border-color: var(--red-depart);
+  color: var(--red-depart);
+}
+.ship-hover-buttons button.btn-depart:hover {
+  background: #fdf2f2;
+}
+
+/* Logic Hover */
+.berthed-ship:hover .ship-hover-buttons { 
+  display: flex; 
+}
+.berthed-ship:hover .ship-details-sub {
+  visibility: hidden; /* Chỉ ẩn Dòng 2 */
+}
+/* Không ẩn Dòng 1 */
+
+/* === VỊ TRÍ TÀU (START/END) === */
+.ship-position {
+  position: absolute;
+  bottom: 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 3px;
+  z-index: 10;
+}
+.ship-position-start {
+  left: 4px;
+}
+.ship-position-end {
+  right: 4px;
+}
+
+
+/* === THẺ TÀU CHỜ (Giữ nguyên) === */
+.waiting-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 56px;
+}
+.waiting-ship-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  position: relative;
+}
+.waiting-ship-card:hover {
+  border-color: var(--primary-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.waiting-ship-card:active {
+  cursor: grabbing;
+  background: #f8fbff;
+}
+.waiting-ship-card.docked {
+  background-color: #f0f8ff;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3), var(--shadow-sm);
+}
+.card-action-buttons {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+}
+.card-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  color: #666;
+  padding: 0;
+}
+.card-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+.card-btn:hover {
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+.card-btn-dock {
+  color: #28a745;
+}
+.card-btn-dock:hover {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-color: #28a745;
+}
+.card-btn-dock:active {
+  background: #c8e6c9;
+  transform: translateY(0px);
+}
+.card-btn-dock:disabled {
+  background: #f5f5f5;
+  color: #bdbdbd;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.card-btn-delete {
+  color: #ef4444;
+}
+.card-btn-delete:hover {
+  background: #ffebee;
+  color: #b71c1c;
+  border-color: #ef4444;
+}
+.card-btn-delete:active {
+  background: #ffcdd2;
+  transform: translateY(0px);
+}
+.card-color-bar {
+  flex-basis: 6px;
+  flex-shrink: 0;
+}
+.color-bar-container { background-color: var(--orange); }
+.color-bar-steel { background-color: var(--green); }
+.color-bar-other { background-color: var(--blue-other); }
+
+.card-main-content {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  flex-grow: 1;
+}
+.card-fill-container { background-color: var(--fill-container); }
+.card-fill-steel { background-color: var(--fill-steel); }
+.card-fill-other { background-color: var(--fill-other); }
+
+.card-index {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-light);
+  padding-right: 10px;
+}
+.card-content { display: flex; flex-direction: column; }
+.card-header {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+.card-body {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+.card-berth-info {
+  font-size: 0.95rem;
+  color: #1976d2; /* xanh nhạt chuyên nghiệp */
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.card-footer {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* === Ship tooltip (hover on all ships) === */
+.ship-tooltip {
+  position: absolute;
+  z-index: 65;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+  max-width: 360px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  pointer-events: none;
+}
+.tooltip-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e3a8a;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(30, 58, 138, 0.15);
+  padding-bottom: 6px;
+}
+.tooltip-row {
+  margin-bottom: 5px;
+  color: var(--text-secondary);
+}
+.tooltip-row:last-child { margin-bottom: 0; }
+.tooltip-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Highlight tàu chồng lấn */
+.ship-highlighted {
+  /* smaller red border for overlap highlight */
+  box-shadow: 0 0 0 2px #f44336, 0 4px 10px rgba(244, 67, 54, 0.25) !important;
+  border: 2px solid #f44336 !important;
+  z-index: 35 !important;
+}

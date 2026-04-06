@@ -1,0 +1,18 @@
+/* src/App.css */
+
+/* Import các module CSS */
+@import url('./styles/global.css');
+@import url('./styles/layout.css');
+@import url('./styles/planner.css');
+@import url('./styles/components.css');
+
+/* Copyright footer */
+.app-footer {
+  text-align: center;
+  padding: 12px;
+  background: #f0f2f5;
+  border-top: 1px solid #ddd;
+  font-size: 0.85rem;
+  color: #555;
+  font-weight: 500;
+}

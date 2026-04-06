@@ -1,0 +1,374 @@
+/* src/styles/planner.css */
+
+/* === BIẾN CẬP NHẬT === */
+:root {
+  --berth-total-meters: 1005; /* Cập nhật: 10 + 189 + 30 + 132 + 188 + 204 + 20 + 222 + 10 */
+}
+
+/* === THANH BẾN (TRỤC X) === */
+.berth-header-container {
+  display: flex;
+  height: 80px;
+  background: var(--bg-land);
+  border-bottom: 2px solid var(--border-dark);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+}
+.timeline-spacer {
+  flex-basis: var(--timeline-width);
+  flex-shrink: 0;
+  border-right: 2px solid var(--border-dark);
+  position: sticky;
+  left: 0;
+  z-index: 55;
+  background: #f7f9fc;
+}
+.berth-axis-row-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.berth-container, .crane-rail-container {
+  display: flex;
+  width: 100%;
+}
+.berth-container {
+  height: 40px;
+  /* Bỏ border-bottom ở container để gap không có đường ngang */
+}
+.crane-rail-container {
+  height: 40px;
+  position: relative;
+  display: flex; /* Thay đổi từ relative sang flex */
+  width: 100%;
+}
+
+/* Crane rail blocks */
+.crane-rail-block {
+  position: relative;
+  height: 100%;
+}
+.crane-rail-block-gw-main { flex-basis: calc(743 / 1005 * 100%); } /* K12C + gap + K12A + K12 + K12B = 189+30+524=743 */
+.crane-rail-block-tt2 { flex-basis: calc(222 / 1005 * 100%); }
+
+/* Crane rail gaps */
+.crane-rail-gap {
+  height: 100%;
+  background-color: #ffffff; /* Màu trắng */
+  border-left: 1px dashed var(--border-dark);
+  border-right: 1px dashed var(--border-dark);
+  border-top: none; /* Bỏ đường ngang */
+  border-bottom: none; /* Bỏ đường ngang */
+}
+.crane-rail-gap-10 { flex-basis: calc(10 / 1005 * 100%); }
+.crane-rail-gap-20 { flex-basis: calc(20 / 1005 * 100%); }
+.crane-rail-gap-30 { flex-basis: calc(30 / 1005 * 100%); }
+
+/* Cập nhật berth blocks theo kích thước mới với gap */
+.berth-block { 
+  display: flex; 
+  height: 100%; 
+  position: relative;
+  /* Bỏ border-bottom ở block để gap không có đường ngang */
+}
+.berth-block-k12c { flex-basis: calc(189 / 1005 * 100%); } /* 189m */
+.berth-block-k12a { flex-basis: calc(132 / 1005 * 100%); } /* 132m */
+.berth-block-k12 { flex-basis: calc(188 / 1005 * 100%); }  /* 188m */
+.berth-block-k12b { flex-basis: calc(204 / 1005 * 100%); } /* 204m */
+.berth-block-tt2  { flex-basis: calc(222 / 1005 * 100%); } /* 222m */
+
+/* Gap giữa các khối */
+.berth-gap { 
+  background-color: #ffffff; /* Màu trắng */
+  border-left: 1px dashed var(--border-dark);
+  border-right: 1px dashed var(--border-dark);
+  border-bottom: none; /* Bỏ đường ngang */
+}
+.berth-gap-10 { flex-basis: calc(10 / 1005 * 100%); }  /* Gap 10m */
+.berth-gap-20 { flex-basis: calc(20 / 1005 * 100%); }  /* Gap 20m */
+.berth-gap-30 { flex-basis: calc(30 / 1005 * 100%); }  /* Gap 30m */
+
+.berth {
+  height: 100%;
+  border-right: 1px dotted var(--border-dark); /* Đổi sang dotted để phân cách */
+  border-bottom: 1px dashed var(--border-dark); /* Thêm border vào berth element */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5px;
+  font-size: 1rem;
+  font-weight: 700; 
+  text-align: center;
+  color: var(--text-primary);
+  background: #fff !important; 
+  flex-basis: 100%; /* Mỗi berth chiếm toàn bộ block */
+  transition: background-color 0.2s ease;
+}
+/* Highlight berth khi drag */
+.berth-active {
+  background: #e3f2fd !important; /* Màu xanh nhạt */
+  box-shadow: inset 0 0 8px rgba(33, 150, 243, 0.3);
+}
+/* Highlight a full day (both NGÀY and ĐÊM) when dragging over the timeline/grid */
+.day-active {
+  background: rgba(30, 127, 255, 0.12) !important;
+}
+.timeline-day.day-active {
+  background: rgba(30, 127, 255, 0.08) !important;
+  box-shadow: inset 0 0 8px rgba(30,127,255,0.12);
+  border-left: 3px solid rgba(30,127,255,0.12);
+}
+.timeline-slot.day-active {
+  color: #0d4f8a !important;
+  font-weight: 800 !important;
+}
+.grid-day.day-active, .grid-day-gap.day-active {
+  background-color: rgba(30,127,255,0.06) !important;
+  border-bottom-color: rgba(30,127,255,0.12) !important;
+  box-shadow: inset 0 0 6px rgba(30,127,255,0.06);
+}
+/* Chỉ bỏ border-right ở berth cuối cùng của TT2 (trước gap cuối) */
+.berth-block-tt2 .berth { border-right: none; }
+
+/* === PITCH RULER === */
+.pitch-ruler-wrapper {
+  display: flex;
+  height: 50px;
+  background: var(--bg-land);
+  /* Bỏ border-bottom ở wrapper để gap không có đường ngang */
+  position: sticky;
+  top: 80px; /* Dưới berth header */
+  z-index: 45;
+}
+.pitch-ruler-spacer {
+  flex-basis: var(--timeline-width);
+  flex-shrink: 0;
+  border-right: 2px solid var(--border-dark);
+  background: #f7f9fc;
+}
+.pitch-ruler-container {
+  flex-grow: 1;
+  position: relative;
+  background: #fafbfc;
+  display: flex; /* Thêm flex để chứa các block */
+}
+.pitch-ruler {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* Pitch ruler blocks */
+.pitch-ruler-block {
+  position: relative;
+  height: 100%;
+  border-bottom: 1px solid var(--border-color); /* Thêm border cho từng block */
+}
+.pitch-ruler-block-k12c { flex-basis: calc(189 / 1005 * 100%); }
+.pitch-ruler-block-main { flex-basis: calc(524 / 1005 * 100%); } /* K12A + K12 + K12B */
+.pitch-ruler-block-tt2 { flex-basis: calc(222 / 1005 * 100%); }
+
+/* Pitch ruler gaps */
+.pitch-ruler-gap {
+  position: relative;
+  height: 100%;
+  background-color: #ffffff; /* Màu trắng */
+  border-left: 1px dashed var(--border-dark);
+  border-right: 1px dashed var(--border-dark);
+  border-top: none; /* Bỏ đường ngang */
+  border-bottom: none; /* Bỏ đường ngang */
+}
+.pitch-ruler-gap-10 { flex-basis: calc(10 / 1005 * 100%); }
+.pitch-ruler-gap-20 { flex-basis: calc(20 / 1005 * 100%); }
+.pitch-ruler-gap-30 { flex-basis: calc(30 / 1005 * 100%); }
+
+.pitch-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Canh giữa theo chiều dọc */
+  height: 100%; /* Chiều cao đầy đủ để canh giữa */
+  font-size: 0.7rem;
+  line-height: 1.2;
+  width: 40px;
+}
+.pitch-dot {
+  width: 8px; /* Tăng từ 6px lên 8px */
+  height: 8px;
+  border-radius: 50%;
+  background-color: #000;
+  margin-bottom: 2px;
+}
+.pitch-dot-red {
+  background-color: #dc3545 !important; /* Màu đỏ */
+}
+.pitch-marker.pitch-red .pitch-id,
+.pitch-marker.pitch-red .pitch-label {
+  color: #dc3545 !important; /* Text màu đỏ */
+}
+.pitch-id {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+}
+.pitch-label {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+/* === LƯỚI (TRỤC Y) === */
+.planning-grid-container { 
+  display: flex; 
+  width: 100%; 
+}
+.timeline {
+  flex-basis: var(--timeline-width);
+  flex-shrink: 0;
+  background: var(--bg-timeline);
+  border-right: 2px solid var(--border-dark);
+  position: sticky;
+  left: 0;
+  z-index: 40;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column; 
+}
+.timeline-day {
+  height: var(--day-total-height);
+  border-bottom: 1px solid var(--border-dark);
+  position: relative;
+  display: flex;
+  padding: 0;
+}
+.timeline-day:nth-child(even) { 
+  background-color: #f7f9fc; 
+}
+.timeline-day-col {
+  flex-basis: 50px;
+  border-right: 1px dotted var(--border-color);
+  padding: 8px 5px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Make the day-of-week lighter, and the date (2nd line) bolder and blue */
+.timeline-day-col > div:first-child {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.timeline-day-col > div:nth-child(2) {
+  color: #1e7fff; /* blue */
+  font-weight: 1000;
+  font-size: 3rem; /* Requested larger size */
+  line-height: 1.02;
+}
+.timeline-slot-col {
+  flex-basis: 40px;
+  display: flex;
+  flex-direction: column;
+}
+.timeline-slot {
+  height: var(--slot-height);
+  border-bottom: 1px dotted var(--border-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  padding: 8px 5px;
+}
+.timeline-slot:last-child { border-bottom: none; }
+
+/* Make secondary slot labels/lines (2nd, 3rd, ...) visually lighter */
+.timeline-slot:nth-child(n+2) {
+  color: rgba(0,0,0,0.35);
+  font-weight: 500;
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+
+/* VÙNG NƯỚC */
+.grid-main {
+  flex-grow: 1;
+  background: var(--bg-main);
+  position: relative;
+  display: flex;
+}
+.grid-day {
+  height: var(--day-total-height);
+  border-bottom: 1px solid var(--border-dark);
+  background-image: linear-gradient(to bottom, var(--bg-water-grid) 1px, transparent 1px);
+  background-repeat: repeat-x;
+  background-position: 0 var(--slot-height);
+  background-size: 100% var(--slot-height);
+  background-color: var(--bg-water);
+}
+.grid-day:nth-child(even) {
+  background-color: var(--bg-water-alternate);
+}
+
+/* Grid day cho gap - màu trắng không có pattern */
+.grid-day-gap {
+  height: var(--day-total-height);
+  border-bottom: none; /* Bỏ đường ngang */
+  background-color: #ffffff; /* Màu trắng đồng nhất */
+}
+
+/* Half-day (slot) highlighting: top half = NGÀY, bottom half = ĐÊM */
+.grid-day.slot-day-active {
+  background: linear-gradient(to bottom, rgba(30,127,255,0.12) 0%, rgba(30,127,255,0.12) 50%, transparent 50%);
+}
+.grid-day.slot-night-active {
+  background: linear-gradient(to bottom, transparent 0%, transparent 50%, rgba(30,127,255,0.12) 50%, rgba(30,127,255,0.12) 100%);
+}
+.grid-day-gap.slot-day-active {
+  background: linear-gradient(to bottom, rgba(30,127,255,0.08) 0%, rgba(30,127,255,0.08) 50%, #fff 50%);
+}
+.grid-day-gap.slot-night-active {
+  background: linear-gradient(to bottom, #fff 0%, #fff 50%, rgba(30,127,255,0.08) 50%, rgba(30,127,255,0.08) 100%);
+}
+
+/* Cập nhật grid columns theo tỉ lệ mới 1005m với gap */
+.grid-column {
+  border-right: 1px dotted var(--border-dark);
+}
+.grid-column-k12c { flex-basis: calc(189 / 1005 * 100%); }
+.grid-column-k12a { flex-basis: calc(132 / 1005 * 100%); }
+.grid-column-k12 { flex-basis: calc(188 / 1005 * 100%); }
+.grid-column-k12b { flex-basis: calc(204 / 1005 * 100%); }
+.grid-column-tt2  { flex-basis: calc(222 / 1005 * 100%); }
+
+/* Gap columns trong grid */
+.grid-column-gap { 
+  background: #ffffff; /* Màu trắng */
+  border-right: 1px dashed var(--border-dark);
+  border-left: 1px dashed var(--border-dark);
+  border-top: none; /* Bỏ đường ngang */
+  border-bottom: none; /* Bỏ đường ngang */
+}
+.grid-column-gap-10 { flex-basis: calc(10 / 1005 * 100%); }  /* Gap 10m */
+.grid-column-gap-20 { flex-basis: calc(20 / 1005 * 100%); }  /* Gap 20m */
+.grid-column-gap-30 { flex-basis: calc(30 / 1005 * 100%); }  /* Gap 30m */
+
+/* Highlight vị trí start/end tàu */
+.ship-position {
+  background: rgba(0, 0, 0, 0.9); /* màu đen, opacity 90% - bớt trong suốt */
+  color: #fff;
+  font-weight: 900; /* đậm nhất */
+  font-size: 0.85rem;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin: 0 2px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.18);
+  z-index: 2;
+  position: relative;
+  pointer-events: none;
+}

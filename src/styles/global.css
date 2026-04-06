@@ -1,0 +1,125 @@
+/* src/styles/global.css */
+
+/* === BIẾN MÀU (Theme v20.0) === */
+:root {
+  --bg-main: #f4f7fa;
+  --bg-panel: #ffffff;
+  --bg-header: #ffffff;
+  --bg-water: #e6f2ff;
+  --bg-water-alternate: #f0f6fd;
+  --bg-water-grid: #cddff8;
+  --bg-land: #f8fafd;
+  --bg-timeline: #fdfdfd;
+
+  --text-primary: #0b2545;
+  --text-secondary: #5a7a9e;
+  --text-light: #849bb6;
+
+  --border-color: #dfe9f5;
+  --border-dark: #c0d3eb;
+
+  --primary-blue: #0062ff;
+  --primary-blue-light: #a9d0ff;
+  --blue-dark: #0041a3;
+  --green: #28a745;
+  --orange: #fd7e14;
+  --red-depart: #d9534f;
+  --blue-other: #007bff;
+
+  --fill-container: #fff4e6;
+  --fill-steel: #eaf6ec;
+  --fill-other: #e6f2ff;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.07);
+
+  --timeline-width: 90px;
+  --berth-total-meters: 1083; 
+  --slot-height: 30px;
+  --day-total-height: 60px;
+}
+
+/* === RESET & GLOBAL === */
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+* { box-sizing: border-box; }
+
+/* === STYLES CHUNG === */
+h2 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+button.btn-primary { 
+  background-color: var(--primary-blue); 
+  color: white; 
+  box-shadow: var(--shadow-sm); 
+}
+button.btn-primary:hover { 
+  background-color: #0052cc; 
+  box-shadow: var(--shadow-md); 
+}
+button.btn-danger { 
+  background-color: #dc3545; 
+  color: white; 
+  box-shadow: var(--shadow-sm); 
+}
+button.btn-danger:hover { 
+  background-color: #c82333; 
+  box-shadow: var(--shadow-md); 
+}
+
+/* Styles cho Form (Dùng ở ControlPanel và DetailPanel) */
+.form-container {
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #fdfdfd;
+}
+.form-group { 
+  margin-bottom: 12px; 
+}
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-sm);
+}
+.form-row { 
+  display: flex; 
+  gap: 10px; 
+}
+.form-row > div { 
+  flex: 1; 
+}
