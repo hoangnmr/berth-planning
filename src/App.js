@@ -29,12 +29,24 @@ function App() {
   const [showPasswordModal, setShowPasswordModal] = useState(true);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
-          const DEFAULT_PASSWORD = "HoangTT"; // Default password for the application
-  const getCurrentPassword = () => {
-    return localStorage.getItem("plannerPassword") || DEFAULT_PASSWORD;
+  // SHA-256 hash of default password (not reversible)
+  const DEFAULT_PASSWORD_HASH = "745427de3e6ddb3e9f059de3da1e24ba4d3ba5f3bd61da3ce7f371bd97f25cc3";
+  const hashPassword = async (pw) => {
+    const msgBuffer = new TextEncoder().encode(pw);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   };
-  const setCurrentPassword = (pw) => {
-    localStorage.setItem("plannerPassword", pw);
+  const getCurrentPasswordHash = () => {
+    return localStorage.getItem("plannerPasswordHash") || DEFAULT_PASSWORD_HASH;
+  };
+  const setCurrentPasswordHash = async (pw) => {
+    const hash = await hashPassword(pw);
+    localStorage.setItem("plannerPasswordHash", hash);
+  };
+  const verifyPassword = async (pw) => {
+    const hash = await hashPassword(pw);
+    return hash === getCurrentPasswordHash();
   };
   // Cờ để ngăn useEffect lọc tàu khi đang khôi phục kế hoạch
   const isRestoringPlan = useRef(false);
@@ -1933,11 +1945,11 @@ function App() {
                 }}
                 placeholder="Mật khẩu..."
                 autoFocus
-                onKeyDown={e => {
+                onKeyDown={async e => {
                   if (e.key === "Enter") {
-                    if (passwordInput === getCurrentPassword()) {
+                    if (await verifyPassword(passwordInput)) {
                       setShowPasswordModal(false);
-                      setCurrentPassword(passwordInput);
+                      await setCurrentPasswordHash(passwordInput);
                     } else {
                       setPasswordError("Mật khẩu không đúng!");
                     }
@@ -1954,10 +1966,10 @@ function App() {
                   border: "none",
                   cursor: "pointer"
                 }}
-                onClick={() => {
-                  if (passwordInput === getCurrentPassword()) {
+                onClick={async () => {
+                  if (await verifyPassword(passwordInput)) {
                     setShowPasswordModal(false);
-                    setCurrentPassword(passwordInput);
+                    await setCurrentPasswordHash(passwordInput);
                   } else {
                     setPasswordError("Mật khẩu không đúng!");
                   }
@@ -1966,9 +1978,6 @@ function App() {
               {passwordError && (
                 <div style={{color: "#d32f2f", marginTop: "10px"}}>{passwordError}</div>
               )}
-              <div style={{marginTop: "10px", fontStyle: "italic", color: "#555"}}>
-                Password hiện tại: {getCurrentPassword()}
-              </div>
               <div style={{marginTop: "18px", fontSize: "0.95em", color: "#888"}}>
                 © Nguyen Hoang &amp; Ban Khai thac | Trung tam DHKT KV TAN THUAN
               </div>
