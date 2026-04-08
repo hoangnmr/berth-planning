@@ -107,13 +107,12 @@ REM === BUOC 3: Server pull tu GitHub va deploy ===
 echo [3/4] Deploy tren server...
 echo.
 
-ssh -p %PORT% %USER%@%SERVER% "cd %REMOTE_PATH% && echo '--- Pull code tu GitHub ---' && git fetch origin main && git reset --hard origin/main && echo '--- Copy build ra thu muc serve ---' && cp -rf build/* . && echo '--- Xong! ---' && echo '' && echo '--- Files tren server ---' && ls -la && echo '' && du -sh ."
+ssh -p %PORT% %USER%@%SERVER% "git config --global --add safe.directory %REMOTE_PATH% 2>/dev/null; cd %REMOTE_PATH% && echo '--- Pull code tu GitHub ---' && git fetch origin main && git reset --hard origin/main && echo '--- Copy build ra thu muc serve ---' && cp -rf build/* . && echo '--- Xong! ---' && echo '' && echo '--- Files tren server ---' && ls -la && echo '' && du -sh ."
 
 if %errorlevel% neq 0 (
     echo.
-    echo [CANH BAO] Khong the SSH vao server. Thu cai dat git tren server...
-    echo Dang thu khoi tao git tren server lan dau...
-    ssh -p %PORT% %USER%@%SERVER% "mkdir -p %REMOTE_PATH% && cd %REMOTE_PATH% && git init && git remote add origin %REPO% && git fetch origin main && git checkout -f main && cp -rf build/* . && echo 'Init thanh cong!' && ls -la"
+    echo [CANH BAO] Khong the pull. Thu khoi tao git tren server lan dau...
+    ssh -p %PORT% %USER%@%SERVER% "git config --global --add safe.directory %REMOTE_PATH%; mkdir -p %REMOTE_PATH% && cd %REMOTE_PATH% && git init && git remote add origin %REPO% && git fetch origin main && git checkout -f main && cp -rf build/* . && echo 'Init thanh cong!' && ls -la"
     if %errorlevel% neq 0 (
         echo [LOI] Deploy that bai!
         pause
